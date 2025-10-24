@@ -1,0 +1,2 @@
+# buyani.ph
+Buyanihan — a modern Filipino-inspired e-commerce marketplace built with Next.js, empowering sellers to offer both physical and digital products in one community-driven platform. Inspired by the Filipino spirit of Bayanihan, this project connects buyers and sellers through seamless transactions, powerful search, and localized user experience.  💡 Built with performance, scalability, and modularity in mind — powered by Next.js, TanStack Query, Prisma, and PostgreSQL.
