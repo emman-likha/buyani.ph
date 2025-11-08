@@ -17,6 +17,7 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
+import { AuthModal } from '@/components/AuthModal';
 
 // Hamburger icon component
 const HamburgerIcon = ({ className, ...props }: React.SVGAttributes<SVGElement>) => (
@@ -93,6 +94,8 @@ export const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
     ref
   ) => {
     const [isMobile, setIsMobile] = useState(false);
+    const [authModalOpen, setAuthModalOpen] = useState(false);
+    const [authMode, setAuthMode] = useState<'signup' | 'signin'>('signup');
     const containerRef = useRef<HTMLElement>(null);
     const searchId = useId();
 
@@ -135,6 +138,7 @@ export const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
     };
 
     return (
+      <>
       <header
         ref={combinedRef}
         className={cn(
@@ -186,6 +190,8 @@ export const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
                         <button
                           onClick={(e) => {
                             e.preventDefault();
+                            setAuthMode('signin');
+                            setAuthModalOpen(true);
                             if (onSignInClick) onSignInClick();
                           }}
                           className="flex w-full items-center rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-white focus:bg-accent focus:text-white cursor-pointer no-underline"
@@ -265,6 +271,8 @@ export const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
                 className="text-sm font-medium hover:bg-accent hover:text-white cursor-pointer"
                 onClick={(e) => {
                   e.preventDefault();
+                  setAuthMode('signin');
+                  setAuthModalOpen(true);
                   if (onSignInClick) onSignInClick();
                 }}
               >
@@ -292,6 +300,13 @@ export const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
           )}
         </div>
       </header>
+
+      <AuthModal
+        open={authModalOpen}
+        onOpenChange={setAuthModalOpen}
+        defaultMode={authMode}
+      />
+    </>
     );
   }
 );
