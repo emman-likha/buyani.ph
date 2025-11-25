@@ -1,7 +1,8 @@
 'use client';
 
 import * as React from 'react';
-import { useEffect, useState, useRef, useId } from 'react';
+import { useState, useId } from 'react';
+import Link from 'next/link';
 import { SearchIcon, ShoppingCart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -18,6 +19,7 @@ import {
 } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 import { AuthModal } from '@/components/AuthModal';
+import { ModeToggle } from '@/components/ModeToggle';
 
 // Hamburger icon component
 const HamburgerIcon = ({ className, ...props }: React.SVGAttributes<SVGElement>) => (
@@ -93,40 +95,10 @@ export const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
     },
     ref
   ) => {
-    const [isMobile, setIsMobile] = useState(false);
     const [authModalOpen, setAuthModalOpen] = useState(false);
     const [authMode, setAuthMode] = useState<'signup' | 'signin'>('signup');
-    const containerRef = useRef<HTMLElement>(null);
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const searchId = useId();
-
-    useEffect(() => {
-      const checkWidth = () => {
-        if (containerRef.current) {
-          const width = containerRef.current.offsetWidth;
-          setIsMobile(width < 768);
-        }
-      };
-
-      checkWidth();
-
-      const resizeObserver = new ResizeObserver(checkWidth);
-      if (containerRef.current) {
-        resizeObserver.observe(containerRef.current);
-      }
-
-      return () => {
-        resizeObserver.disconnect();
-      };
-    }, []);
-
-    const combinedRef = React.useCallback((node: HTMLElement | null) => {
-      containerRef.current = node;
-      if (typeof ref === 'function') {
-        ref(node);
-      } else if (ref) {
-        ref.current = node;
-      }
-    }, [ref]);
 
     const handleSearchSubmit = (e: React.FormEvent<HTMLFormElement>) => {
       e.preventDefault();
@@ -139,177 +111,193 @@ export const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
 
     return (
       <>
-      <header
-        ref={combinedRef}
-        className={cn(
-          'sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-4 md:px-6 [&_*]:no-underline',
-          className
-        )}
-        {...props}
-      >
-        <div className="container mx-auto flex h-16 max-w-screen-2xl items-center justify-between gap-4">
-          {/* Left side */}
-          <div className="flex flex-1 items-center gap-2">
-            {/* Mobile menu trigger */}
-            {isMobile && (
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    className="group h-9 w-9 hover:bg-accent hover:text-accent-foreground"
-                    variant="ghost"
-                    size="icon"
-                  >
-                    <HamburgerIcon />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent align="start" className="w-64 p-1">
-                  <NavigationMenu className="max-w-none">
-                    <NavigationMenuList className="flex-col items-start gap-0">
-                      {navigationLinks.map((link, index) => (
-                        <NavigationMenuItem key={index} className="w-full">
-                          <button
-                            onClick={(e) => e.preventDefault()}
-                            className="flex w-full items-center rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-white focus:bg-accent focus:text-white cursor-pointer no-underline"
-                          >
-                            {link.label}
-                          </button>
-                        </NavigationMenuItem>
-                      ))}
-                      <NavigationMenuItem
-                        className="w-full"
-                        role="presentation"
-                        aria-hidden={true}
-                      >
-                        <div
-                          role="separator"
-                          aria-orientation="horizontal"
-                          className="bg-border -mx-1 my-1 h-px"
-                        />
-                      </NavigationMenuItem>
-                      <NavigationMenuItem className="w-full">
-                        <button
-                          onClick={(e) => {
-                            e.preventDefault();
-                            setAuthMode('signin');
-                            setAuthModalOpen(true);
-                            if (onSignInClick) onSignInClick();
-                          }}
-                          className="flex w-full items-center rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-white focus:bg-accent focus:text-white cursor-pointer no-underline"
-                        >
-                          {signInText}
-                        </button>
-                      </NavigationMenuItem>
-                      <NavigationMenuItem className="w-full">
-                        <Button
-                          size="sm"
-                          className="mt-0.5 w-full text-left text-sm"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            if (onCartClick) onCartClick();
-                          }}
-                        >
-                          <span className="flex items-baseline gap-2">
-                            {cartText}
-                            <span className="text-primary-foreground/60 text-xs">
-                              {cartCount}
-                            </span>
-                          </span>
-                        </Button>
-                      </NavigationMenuItem>
-                    </NavigationMenuList>
-                  </NavigationMenu>
-                </PopoverContent>
-              </Popover>
+        <div className="sticky top-4 z-50 w-full px-4 mb-6">
+          <header
+            ref={ref}
+            className={cn(
+              'mx-auto max-w-screen-2xl rounded-2xl border border-border/50 bg-card/80 backdrop-blur-md shadow-sm supports-[backdrop-filter]:bg-card/60 transition-all duration-200',
+              className
             )}
-            {/* Main nav */}
-            <div className="flex flex-1 items-center gap-6 max-md:justify-between">
-              <button
-                onClick={(e) => e.preventDefault()}
-                className="flex items-center space-x-2 text-primary hover:text-primary/90 transition-colors cursor-pointer"
-              >
-                <span className="font-bold text-xl">{brandName}</span>
-              </button>
-              {/* Navigation menu */}
-              {!isMobile && (
-                <NavigationMenu className="flex">
+            {...props}
+          >
+            <div className="flex h-16 items-center justify-between px-4 md:px-6 gap-4">
+              {/* Left side */}
+              <div className="flex flex-1 items-center gap-6">
+                <Link
+                  href="/"
+                  className="flex items-center space-x-2 text-primary hover:text-primary/90 transition-colors cursor-pointer shrink-0"
+                >
+                  <span className="font-bold text-xl">{brandName}</span>
+                </Link>
+
+                {/* Navigation menu (Desktop) */}
+                <NavigationMenu className="hidden md:flex">
                   <NavigationMenuList className="gap-1">
                     {navigationLinks.map((link, index) => (
                       <NavigationMenuItem key={index}>
-                        <NavigationMenuLink
-                          href={link.href}
-                          onClick={(e) => e.preventDefault()}
-                          className="text-muted-foreground hover:text-white hover:bg-accent py-1.5 font-medium transition-colors cursor-pointer group inline-flex h-10 w-max items-center justify-center rounded-md bg-background px-4 py-2 text-sm focus:bg-accent focus:text-white focus:outline-none disabled:pointer-events-none disabled:opacity-50"
-                        >
-                          {link.label}
+                        <NavigationMenuLink asChild>
+                          <Link
+                            href={link.href || '#'}
+                            className="text-muted-foreground hover:text-foreground hover:bg-accent py-1.5 font-medium transition-colors cursor-pointer group inline-flex h-9 w-max items-center justify-center rounded-full bg-transparent px-4 text-sm focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50"
+                          >
+                            {link.label}
+                          </Link>
                         </NavigationMenuLink>
                       </NavigationMenuItem>
                     ))}
                   </NavigationMenuList>
                 </NavigationMenu>
-              )}
-              {/* Search form */}
-              <form onSubmit={handleSearchSubmit} className="relative">
-                <Input
-                  id={searchId}
-                  name="search"
-                  className="peer h-8 ps-8 pe-2"
-                  placeholder={searchPlaceholder}
-                  type="search"
-                />
-                <div className="text-muted-foreground/80 pointer-events-none absolute inset-y-0 start-0 flex items-center justify-center ps-2 peer-disabled:opacity-50">
-                  <SearchIcon size={16} />
-                </div>
-              </form>
-            </div>
-          </div>
-          {/* Right side */}
-          {!isMobile && (
-            <div className="flex items-center gap-3">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-sm font-medium hover:bg-accent hover:text-white cursor-pointer"
-                onClick={(e) => {
-                  e.preventDefault();
-                  setAuthMode('signin');
-                  setAuthModalOpen(true);
-                  if (onSignInClick) onSignInClick();
-                }}
-              >
-                {signInText}
-              </Button>
-              <Button
-                size="sm"
-                className="text-sm font-medium px-4 h-9 rounded-md shadow-sm cursor-pointer"
-                onClick={(e) => {
-                  e.preventDefault();
-                  if (onCartClick) onCartClick();
-                }}
-              >
-                <ShoppingCart size={16} className="mr-2" />
-                <span className="flex items-baseline gap-2">
-                  {cartText}
-                  {cartCount > 0 && (
-                    <span className="text-primary-foreground/60 text-xs">
-                      {cartCount}
-                    </span>
-                  )}
-                </span>
-              </Button>
-            </div>
-          )}
-        </div>
-      </header>
 
-      <AuthModal
-        open={authModalOpen}
-        onOpenChange={setAuthModalOpen}
-        defaultMode={authMode}
-      />
-    </>
+                {/* Search form */}
+                <form onSubmit={handleSearchSubmit} className="relative w-full max-w-xs flex-1 md:flex-none hidden lg:block">
+                  <Input
+                    id={searchId}
+                    name="search"
+                    className="peer h-9 rounded-full bg-background/50 border-border/50 ps-9 pe-2 w-full focus-visible:ring-1 focus-visible:ring-primary"
+                    placeholder={searchPlaceholder}
+                    type="search"
+                    aria-label="Search"
+                  />
+                  <div className="text-muted-foreground/80 pointer-events-none absolute inset-y-0 start-0 flex items-center justify-center ps-3 peer-disabled:opacity-50">
+                    <SearchIcon size={16} />
+                  </div>
+                </form>
+              </div>
+
+              {/* Right side */}
+              <div className="flex items-center gap-2">
+                
+                {/* Mobile Search Trigger (Visible only on mobile/tablet) */}
+                <Button variant="ghost" size="icon" className="lg:hidden rounded-full" aria-label="Search">
+                   <SearchIcon size={20} />
+                </Button>
+
+                <ModeToggle />
+                
+                {/* Desktop Actions */}
+                <div className="hidden md:flex items-center gap-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-sm font-medium hover:bg-accent hover:text-accent-foreground cursor-pointer rounded-full px-4"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setAuthMode('signin');
+                      setAuthModalOpen(true);
+                      if (onSignInClick) onSignInClick();
+                    }}
+                  >
+                    {signInText}
+                  </Button>
+                  <Button
+                    size="sm"
+                    className="text-sm font-medium px-4 h-9 rounded-full shadow-sm cursor-pointer"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      if (onCartClick) onCartClick();
+                    }}
+                  >
+                    <ShoppingCart size={16} className="mr-2" />
+                    <span className="flex items-baseline gap-2">
+                      {cartText}
+                      {cartCount > 0 && (
+                        <span className="text-primary-foreground/60 text-xs">
+                          {cartCount}
+                        </span>
+                      )}
+                    </span>
+                  </Button>
+                </div>
+
+                {/* Mobile menu trigger */}
+                <div className="md:hidden">
+                  <Popover open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+                    <PopoverTrigger asChild>
+                      <Button
+                        className="group h-9 w-9 hover:bg-accent hover:text-accent-foreground rounded-full"
+                        variant="ghost"
+                        size="icon"
+                        aria-label="Open menu"
+                      >
+                        <HamburgerIcon />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent align="end" className="w-64 p-1 rounded-2xl">
+                      <NavigationMenu className="max-w-none w-full justify-start">
+                        <NavigationMenuList className="flex-col items-start gap-1 w-full space-x-0">
+                          {navigationLinks.map((link, index) => (
+                            <NavigationMenuItem key={index} className="w-full">
+                              <Link
+                                href={link.href || '#'}
+                                className="flex w-full items-center rounded-lg px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground cursor-pointer no-underline"
+                                onClick={() => setMobileMenuOpen(false)}
+                              >
+                                {link.label}
+                              </Link>
+                            </NavigationMenuItem>
+                          ))}
+                          <NavigationMenuItem
+                            className="w-full"
+                            role="presentation"
+                            aria-hidden={true}
+                          >
+                            <div
+                              role="separator"
+                              aria-orientation="horizontal"
+                              className="bg-border -mx-1 my-1 h-px"
+                            />
+                          </NavigationMenuItem>
+                          <NavigationMenuItem className="w-full">
+                            <button
+                              onClick={(e) => {
+                                e.preventDefault();
+                                setMobileMenuOpen(false);
+                                setAuthMode('signin');
+                                setAuthModalOpen(true);
+                                if (onSignInClick) onSignInClick();
+                              }}
+                              className="flex w-full items-center rounded-lg px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground cursor-pointer no-underline"
+                            >
+                              {signInText}
+                            </button>
+                          </NavigationMenuItem>
+                          <NavigationMenuItem className="w-full">
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="w-full justify-start px-3 font-medium rounded-lg"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                setMobileMenuOpen(false);
+                                if (onCartClick) onCartClick();
+                              }}
+                            >
+                              <span className="flex items-baseline gap-2">
+                                {cartText}
+                                <span className="text-muted-foreground text-xs">
+                                  {cartCount}
+                                </span>
+                              </span>
+                            </Button>
+                          </NavigationMenuItem>
+                        </NavigationMenuList>
+                      </NavigationMenu>
+                    </PopoverContent>
+                  </Popover>
+                </div>
+              </div>
+            </div>
+          </header>
+        </div>
+
+        <AuthModal
+          open={authModalOpen}
+          onOpenChange={setAuthModalOpen}
+          defaultMode={authMode}
+        />
+      </>
     );
   }
 );
 
 Navbar.displayName = 'Navbar';
-
